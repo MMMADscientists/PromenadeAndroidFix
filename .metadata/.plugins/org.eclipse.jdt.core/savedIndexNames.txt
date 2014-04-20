@@ -1,0 +1,6 @@
+INDEX VERSION 1.126+C:\Users\Mike\Documents\GitHub\PromenadeAndroid2\.metadata\.plugins\org.eclipse.jdt.core
+1419186448.index
+1355513515.index
+890238793.index
+332818731.index
+728273447.index
