@@ -44,6 +44,8 @@ import com.promenadevt.android.R;
 import com.promenadevt.library.Constants;
 import com.promenadevt.library.UserFunctions;
 
+
+
 public class EditActivity extends Activity 
 {
     EditText inputName;
@@ -66,6 +68,7 @@ public class EditActivity extends Activity
 	private static String propID;
 	private static String addr;
 	private static String roomURL;
+	
 	
 	int CAMERA_PIC_REQUEST = 1337; 
 	private static final int PHOTO_SELECTED = 1;
@@ -131,6 +134,8 @@ public class EditActivity extends Activity
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.edit_room);
+		
+		
 		
 		s3Client.setRegion(Region.getRegion(Regions.US_WEST_2));
 		
@@ -208,9 +213,12 @@ public class EditActivity extends Activity
 			@Override
 			public void onClick(View arg0) {
 				// go to screen to add connections to room
-				String url = "http://54.186.153.0/API/embed_js.php?i="+propID;
-				Intent browser = new Intent(Intent.ACTION_VIEW,Uri.parse(url));
-				startActivity(browser);
+				Intent next = new Intent(getApplicationContext(),
+                        ConnectActivity.class);
+				next.putExtra("id",dbID);
+				next.putExtra("propID",propID);
+                startActivity(next);
+                finish();
 			}
 			 
 		 });

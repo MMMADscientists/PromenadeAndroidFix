@@ -25,6 +25,8 @@
         <activity android:label="Choose Room" android:name="com.promenadevt.RoomsActivity"> </activity>
         <!-- Edit Activity -->
         <activity android:label="Edit Room" android:name="com.promenadevt.EditActivity"> </activity>
+        <!-- Connection Activity -->
+        <activity android:label="Add Connections" android:name="com.promenadevt.ConnectActivity"> </activity>
         <!-- PhotoSphere Access 
         <activity android:label="Take PhotoSphere" android:clearTaskOnLaunch="true" android:name="com.google.android.apps.lightcycle.ProtectedPanoramaCaptureActivity"  android:taskAffinity="com.google.android.camera" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" android:configChanges="keyboardHidden|orientation|screenSize" android:windowSoftInputMode="stateAlwaysHidden|adjustPan" android:screenOrientation="landscape" > <intent-filter> <action android:name="android.intent.action.MAIN" /> </intent-filter> </activity>
         <service android:name="com.google.android.apps.lightcycle.panorama.StitchingService" /> -->
