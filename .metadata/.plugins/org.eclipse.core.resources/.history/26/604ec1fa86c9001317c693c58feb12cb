@@ -84,8 +84,7 @@ public class ConnectActivity extends Activity {
 	
 	ImageButton btnUp;
 	ImageButton btnDown;
-	ImageButton btnConfirm;
-	ImageButton btnDelete;
+	Button btnConfirm;
 	TextView name;
 	ViewSwitcher switcher;
 	
@@ -115,8 +114,7 @@ public class ConnectActivity extends Activity {
 		
 		btnUp = (ImageButton) findViewById(R.id.up);
 		btnDown = (ImageButton) findViewById(R.id.down);
-		btnConfirm = (ImageButton) findViewById(R.id.confirmDest);
-		btnDelete = (ImageButton) findViewById(R.id.deleteCon);
+		btnConfirm = (Button) findViewById(R.id.confirmDest);
 		switcher = (ViewSwitcher) findViewById(R.id.connectionSwitch);
 		name = (TextView) findViewById(R.id.destName);
 		name.setText("No Connection Selected");
@@ -204,25 +202,6 @@ public class ConnectActivity extends Activity {
 				userFunctions.changeDest(currConID,idRoom.get(index));
 				HashMap<String, String> dest = new HashMap<String, String>();
 				dest.put("destName", roomName.get(index));
-				jockey.send("propertyEdit", webView, dest);
-				switcher.showPrevious();
-			}
-			 
-		 });
-    	
-    	btnConfirm.setOnClickListener(new View.OnClickListener() 
-		{
-
-			@Override
-			public void onClick(View arg0) {
-				
-				/* update connection in db with id currConId
-				 	send jockeyjs message to webgl
-				 	context switch
-				 */
-				userFunctions.deleteConnection(currConID);
-				HashMap<String, String> dest = new HashMap<String, String>();
-				dest.put("conDeleted", "true");
 				jockey.send("propertyEdit", webView, dest);
 				switcher.showPrevious();
 			}

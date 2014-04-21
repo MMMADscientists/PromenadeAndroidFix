@@ -220,9 +220,9 @@ public class ConnectActivity extends Activity {
 				 	send jockeyjs message to webgl
 				 	context switch
 				 */
-				userFunctions.deleteConnection(currConID);
+				userFunctions.deleteConnection(currConID,idRoom.get(index));
 				HashMap<String, String> dest = new HashMap<String, String>();
-				dest.put("conDeleted", "true");
+				dest.put("destName", roomName.get(index));
 				jockey.send("propertyEdit", webView, dest);
 				switcher.showPrevious();
 			}

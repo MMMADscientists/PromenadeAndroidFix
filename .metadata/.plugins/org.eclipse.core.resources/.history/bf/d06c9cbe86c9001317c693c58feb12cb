@@ -18,26 +18,7 @@
         android:padding="10px"
         android:weightSum="1.0" >
 	    
-    <LinearLayout
-        android:id="@+id/connectInterface"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_alignParentBottom="true"
-        android:layout_weight="0.05"
-        android:background="#333333"
-        android:padding="10px"
-        android:weightSum="1.0" >
-
-        <TextView
-            android:id="@+id/connectMsg"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="select or create a connection."
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:textColor="#FFFFFF" />
-
-
-	</LinearLayout> 
+    
         
          
     <LinearLayout
@@ -70,21 +51,35 @@
             android:layout_height="wrap_content"
             android:src="@android:drawable/arrow_down_float" />
 
-        <ImageButton
+        <Button
             android:id="@+id/confirmDest"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_input_add" />
-
-        <ImageButton
-            android:id="@+id/deleteCon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_menu_delete" />
+            android:text="Confirm"
+            android:textColor="#FFFFFF" />
 
 	    </LinearLayout>
     
-    
+    <LinearLayout
+        android:id="@+id/connectInterface"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:layout_weight="0.05"
+        android:background="#333333"
+        android:padding="10px"
+        android:weightSum="1.0" >
+
+        <TextView
+            android:id="@+id/connectMsg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="select or create a connection."
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="#FFFFFF" />
+
+
+	</LinearLayout> 
     
     </ViewSwitcher>
 </RelativeLayout>
