@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.sql.Date;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -94,7 +93,6 @@ public class ConnectActivity extends Activity {
     private static String KEY_TUPLE = "tuples";
     private static String KEY_IDROOM = "idRoom";
     private static String KEY_IDCONNECTION = "connections";
-    private static String KEY_IDDEST = "idDest";
     private static String KEY_ROOMNAME = "name";
     private static String KEY_ROOMURL = "roomURL";
     private static String KEY_IDPROPERTY = "idProperty";
@@ -198,11 +196,8 @@ public class ConnectActivity extends Activity {
 				/* update connection in db with id currConId
 				 	send jockeyjs message to webgl
 				 	context switch
+				 
 				 */
-				userFunctions.changeDest(currConID,idRoom.get(index));
-				HashMap<String, String> dest = new HashMap<String, String>();
-				dest.put("destName", roomName.get(index));
-				jockey.send("propertyEdit", webView, dest);
 				switcher.showPrevious();
 			}
 			 
@@ -276,33 +271,13 @@ public class ConnectActivity extends Activity {
 						
 					}
 					currConID = conID;
-					switcher.showNext();
-					Log.d("jockey","connection added");
 				}
 				else
 				{
-					currConID = (String) conInfo.get("ID");
-					JSONObject jsonID = userFunctions.getConnection(currConID);
-					Integer destID;
-					try {
-						destID = jsonID.getJSONObject(KEY_TUPLE).getInt(KEY_IDDEST);
-					} catch (JSONException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-						
-					}
-					for(int i =0; i < idRoom.size(); i++)
-					{
-						if(idRoom.get(i) == destID)
-						{
-							index = i;
-							name.setText(roomName.get(index));
-							break;
-						}
-					}
-					switcher.showNext();
-					Log.d("jockey","connection selected");
+					
 				}
+				
+				switcher.showNext();
 			}
 		});
 	}

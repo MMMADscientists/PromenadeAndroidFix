@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.sql.Date;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -198,11 +197,8 @@ public class ConnectActivity extends Activity {
 				/* update connection in db with id currConId
 				 	send jockeyjs message to webgl
 				 	context switch
+				 
 				 */
-				userFunctions.changeDest(currConID,idRoom.get(index));
-				HashMap<String, String> dest = new HashMap<String, String>();
-				dest.put("destName", roomName.get(index));
-				jockey.send("propertyEdit", webView, dest);
 				switcher.showPrevious();
 			}
 			 
@@ -276,8 +272,6 @@ public class ConnectActivity extends Activity {
 						
 					}
 					currConID = conID;
-					switcher.showNext();
-					Log.d("jockey","connection added");
 				}
 				else
 				{
@@ -297,12 +291,11 @@ public class ConnectActivity extends Activity {
 						{
 							index = i;
 							name.setText(roomName.get(index));
-							break;
 						}
 					}
-					switcher.showNext();
-					Log.d("jockey","connection selected");
 				}
+				// inform webgl that we have new connection
+				switcher.showNext();
 			}
 		});
 	}

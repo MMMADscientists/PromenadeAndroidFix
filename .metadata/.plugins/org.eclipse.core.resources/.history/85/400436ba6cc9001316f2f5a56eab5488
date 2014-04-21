@@ -198,8 +198,8 @@ public class ConnectActivity extends Activity {
 				/* update connection in db with id currConId
 				 	send jockeyjs message to webgl
 				 	context switch
+				 
 				 */
-				userFunctions.changeDest(currConID,idRoom.get(index));
 				HashMap<String, String> dest = new HashMap<String, String>();
 				dest.put("destName", roomName.get(index));
 				jockey.send("propertyEdit", webView, dest);

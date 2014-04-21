@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.sql.Date;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -78,9 +77,6 @@ public class ConnectActivity extends Activity {
 	public WebView webView;
 	private Jockey jockey;
 	
-	List<Integer> idRoom = new ArrayList<Integer>();
-	List<String> roomName = new ArrayList<String>();
-	
 	
 	ImageButton btnUp;
 	ImageButton btnDown;
@@ -93,8 +89,6 @@ public class ConnectActivity extends Activity {
     private static String KEY_ERROR_MSG = "error_msg";
     private static String KEY_TUPLE = "tuples";
     private static String KEY_IDROOM = "idRoom";
-    private static String KEY_IDCONNECTION = "connections";
-    private static String KEY_IDDEST = "idDest";
     private static String KEY_ROOMNAME = "name";
     private static String KEY_ROOMURL = "roomURL";
     private static String KEY_IDPROPERTY = "idProperty";
@@ -122,7 +116,8 @@ public class ConnectActivity extends Activity {
 		JSONObject json = userFunction.getRooms(dbID);
     	
     	//lists of recieved data
-    	
+    	final List<Integer> idRoom = new ArrayList<Integer>();
+    	final List<String> roomName = new ArrayList<String>();
     	//final List<String> roomURL = new ArrayList<String>();
     	
     	try {
@@ -198,11 +193,8 @@ public class ConnectActivity extends Activity {
 				/* update connection in db with id currConId
 				 	send jockeyjs message to webgl
 				 	context switch
+				 
 				 */
-				userFunctions.changeDest(currConID,idRoom.get(index));
-				HashMap<String, String> dest = new HashMap<String, String>();
-				dest.put("destName", roomName.get(index));
-				jockey.send("propertyEdit", webView, dest);
 				switcher.showPrevious();
 			}
 			 
@@ -252,57 +244,15 @@ public class ConnectActivity extends Activity {
 			protected void doPerform(Map<Object, Object> conInfo) {
 				
 				/* check if is new connection
-				if new
-					create new connection in db
-					update currConId
-					context switch
-				else
-					update currConId
-					context switch
-			*/
-				if(conInfo.get("isNew") == "true")
-				{
-					Integer locX = (Integer) conInfo.get("X");
-					Integer locY = (Integer) conInfo.get("Y");
-					Integer locZ = (Integer) conInfo.get("Z");
-					
-					JSONObject jsonID = userFunctions.addConnection(locX,locY,locZ,dbID,idRoom.get(index));
-					String conID = "";
-					try {
-						conID = jsonID.getJSONObject(KEY_TUPLE).getString(KEY_IDCONNECTION);
-					} catch (JSONException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-						
-					}
-					currConID = conID;
-					switcher.showNext();
-					Log.d("jockey","connection added");
-				}
-				else
-				{
-					currConID = (String) conInfo.get("ID");
-					JSONObject jsonID = userFunctions.getConnection(currConID);
-					Integer destID;
-					try {
-						destID = jsonID.getJSONObject(KEY_TUPLE).getInt(KEY_IDDEST);
-					} catch (JSONException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-						
-					}
-					for(int i =0; i < idRoom.size(); i++)
-					{
-						if(idRoom.get(i) == destID)
-						{
-							index = i;
-							name.setText(roomName.get(index));
-							break;
-						}
-					}
-					switcher.showNext();
-					Log.d("jockey","connection selected");
-				}
+					if new
+						create new connection in db
+						update currConId
+						context switch
+					else
+						update currConId
+						context switch
+				*/
+				switcher.showNext();
 			}
 		});
 	}
