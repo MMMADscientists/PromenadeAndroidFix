@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+    
+
+     <android.webkit.WebView
+	        android:id="@+id/webView"
+	        android:layout_width="fill_parent"
+	        android:layout_height="fill_parent" /> 
+
+     <ViewSwitcher
+	    android:id="@+id/editRoomsSwitch"
+	    android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:layout_weight="0.05"
+        android:padding="10px"
+        android:weightSum="1.0" >
+	    
+    
+    <LinearLayout
+        android:id="@+id/connectInterface"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:layout_weight="0.05"
+        android:background="#333333"
+        android:padding="10px"
+        android:weightSum="1.0" >
+
+        <TextView
+            android:id="@+id/connectMsg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Double click to select or create a connection."
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="#FFFFFF" />
+
+
+	    </LinearLayout>     
+         
+    <LinearLayout
+        android:id="@+id/connectInterface"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:layout_weight="0.05"
+        android:background="#333333"
+        android:padding="10px"
+        android:weightSum="1.0" >
+
+        <TextView
+            android:id="@+id/destName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Room1"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="#FFFFFF" />
+
+        <ImageButton
+            android:id="@+id/up"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/arrow_up_float" />
+
+        <ImageButton
+            android:id="@+id/down"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/arrow_down_float" />
+
+        <Button
+            android:id="@+id/confirmDest"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Confirm"
+            android:textColor="#FFFFFF" />
+
+	    </LinearLayout>
+    
+    
+    </ViewSwitcher>
+</RelativeLayout>
