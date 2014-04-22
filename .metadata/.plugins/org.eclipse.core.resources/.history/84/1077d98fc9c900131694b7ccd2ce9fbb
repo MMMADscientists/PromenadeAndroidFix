@@ -254,7 +254,7 @@ public class ConnectActivity extends Activity {
 				return true;
 			}
 		});
-		// use webgl url- need to add room id
+		// use webgl url
 		webView.loadUrl("http://54.186.153.0/API//embedjs.php?i="+propID);
 	}
 	
@@ -294,9 +294,9 @@ public class ConnectActivity extends Activity {
 			@Override
 			protected void doPerform(Map<Object, Object> conInfo) {
 				
-				Integer locX = (Integer) conInfo.get("x");
-				Integer locY = (Integer) conInfo.get("y");
-				Integer locZ = (Integer) conInfo.get("z");
+				Integer locX = (Integer) conInfo.get("X");
+				Integer locY = (Integer) conInfo.get("Y");
+				Integer locZ = (Integer) conInfo.get("Z");
 				
 				JSONObject jsonID = userFunctions.addConnection(locX.toString(),locY.toString(),locZ.toString(),dbID,idRoom.get(index).toString());
 				String conID = "";

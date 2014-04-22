@@ -202,23 +202,29 @@ public class ConnectActivity extends Activity {
 				 	context switch
 				 */
 				userFunctions.changeDest(currConID,idRoom.get(index).toString());
+				HashMap<String, String> dest = new HashMap<String, String>();
+				dest.put("destName", roomName.get(index));
+				jockey.send("propertyEdit", webView, dest);
 				switcher.showPrevious();
-				// refresh screen
-				webView.reload();
 			}
 			 
 		 });
     	
-    	btnDelete.setOnClickListener(new View.OnClickListener() 
+    	btnConfirm.setOnClickListener(new View.OnClickListener() 
 		{
 
 			@Override
 			public void onClick(View arg0) {
 				
+				/* update connection in db with id currConId
+				 	send jockeyjs message to webgl
+				 	context switch
+				 */
 				userFunctions.deleteConnection(currConID);
+				HashMap<String, String> dest = new HashMap<String, String>();
+				dest.put("conDeleted", "true");
+				jockey.send("propertyEdit", webView, dest);
 				switcher.showPrevious();
-				// refresh screen
-				webView.reload();
 			}
 			 
 		 });
@@ -254,63 +260,70 @@ public class ConnectActivity extends Activity {
 				return true;
 			}
 		});
-		// use webgl url- need to add room id
+		// use webgl url
 		webView.loadUrl("http://54.186.153.0/API//embedjs.php?i="+propID);
 	}
 	
 	public void setJockeyEvents() {
 
-		jockey.on("propertyEdit", new JockeyHandler() {
+		
+		jockey.on("propertySelect", new JockeyHandler() {
 			
 			@Override
 			protected void doPerform(Map<Object, Object> conInfo) {
-				currConID = (String) conInfo.get("ID");
-				JSONObject jsonID = userFunctions.getConnection(currConID);
-				Integer destID=0;
-				try {
-					destID = jsonID.getJSONObject(KEY_TUPLE).getInt(KEY_IDDEST);
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					
-				}
-				for(int i =0; i < idRoom.size(); i++)
+				
+				/* check if is new connection
+				if new
+					create new connection in db
+					update currConId
+					context switch
+				else
+					update currConId
+					context switch
+			*/
+				if(conInfo.get("isNew") == "true")
 				{
-					if(idRoom.get(i) == destID)
-					{
-						index = i;
-						name.setText(roomName.get(index));
-						break;
-					}
-				}
-				switcher.showNext();
-				// refresh screen
-				webView.reload();
-			}
-			
-		});
-		jockey.on("propertyCreate", new JockeyHandler() {
-			
-			@Override
-			protected void doPerform(Map<Object, Object> conInfo) {
-				
-				Integer locX = (Integer) conInfo.get("x");
-				Integer locY = (Integer) conInfo.get("y");
-				Integer locZ = (Integer) conInfo.get("z");
-				
-				JSONObject jsonID = userFunctions.addConnection(locX.toString(),locY.toString(),locZ.toString(),dbID,idRoom.get(index).toString());
-				String conID = "";
-				try {
-					conID = jsonID.getJSONObject(KEY_TUPLE).getString(KEY_IDCONNECTION);
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					Integer locX = (Integer) conInfo.get("X");
+					Integer locY = (Integer) conInfo.get("Y");
+					Integer locZ = (Integer) conInfo.get("Z");
 					
+					JSONObject jsonID = userFunctions.addConnection(locX.toString(),locY.toString(),locZ.toString(),dbID,idRoom.get(index).toString());
+					String conID = "";
+					try {
+						conID = jsonID.getJSONObject(KEY_TUPLE).getString(KEY_IDCONNECTION);
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+						
+					}
+					currConID = conID;
+					switcher.showNext();
+					Log.d("jockey","connection added");
 				}
-				currConID = conID;
-				switcher.showNext();
-				// refresh screen
-				webView.reload();
+				else
+				{
+					currConID = (String) conInfo.get("ID");
+					JSONObject jsonID = userFunctions.getConnection(currConID);
+					Integer destID=0;
+					try {
+						destID = jsonID.getJSONObject(KEY_TUPLE).getInt(KEY_IDDEST);
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+						
+					}
+					for(int i =0; i < idRoom.size(); i++)
+					{
+						if(idRoom.get(i) == destID)
+						{
+							index = i;
+							name.setText(roomName.get(index));
+							break;
+						}
+					}
+					switcher.showNext();
+					Log.d("jockey","connection selected");
+				}
 			}
 		});
 	}

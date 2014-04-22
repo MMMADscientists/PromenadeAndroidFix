@@ -254,7 +254,7 @@ public class ConnectActivity extends Activity {
 				return true;
 			}
 		});
-		// use webgl url- need to add room id
+		// use webgl url
 		webView.loadUrl("http://54.186.153.0/API//embedjs.php?i="+propID);
 	}
 	
