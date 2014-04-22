@@ -201,7 +201,7 @@ public class ConnectActivity extends Activity {
 				 	send jockeyjs message to webgl
 				 	context switch
 				 */
-				userFunctions.changeDest(currConID,idRoom.get(index));
+				userFunctions.changeDest(currConID,idRoom.get(index).toString());
 				HashMap<String, String> dest = new HashMap<String, String>();
 				dest.put("destName", roomName.get(index));
 				jockey.send("propertyEdit", webView, dest);
@@ -287,7 +287,7 @@ public class ConnectActivity extends Activity {
 					Integer locY = (Integer) conInfo.get("Y");
 					Integer locZ = (Integer) conInfo.get("Z");
 					
-					JSONObject jsonID = userFunctions.addConnection(locX,locY,locZ,dbID,idRoom.get(index));
+					JSONObject jsonID = userFunctions.addConnection(locX.toString(),locY.toString(),locZ.toString(),dbID,idRoom.get(index).toString());
 					String conID = "";
 					try {
 						conID = jsonID.getJSONObject(KEY_TUPLE).getString(KEY_IDCONNECTION);
@@ -304,7 +304,7 @@ public class ConnectActivity extends Activity {
 				{
 					currConID = (String) conInfo.get("ID");
 					JSONObject jsonID = userFunctions.getConnection(currConID);
-					Integer destID;
+					Integer destID=0;
 					try {
 						destID = jsonID.getJSONObject(KEY_TUPLE).getInt(KEY_IDDEST);
 					} catch (JSONException e) {

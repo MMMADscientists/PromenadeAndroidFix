@@ -33,6 +33,9 @@ public class DatabaseAccessTask extends android.os.AsyncTask<String, Void, JSONO
 	    private static String room_delete_tag = "deleteRoom";
 	    private static String house_delete_tag = "deleteProperty";
 	    private static String room_url_tag = "changeRoomURL";
+	    private static String connection_change_dest_tag = "changeConnectionDestination";
+	    private static String connection_delete_tag = "deleteConnection";
+	    private static String connection_create_tag = "createConnection";
 	    
 
 	private static String loginURL = "http://54.186.153.0/API/index.php";
@@ -128,6 +131,35 @@ public class DatabaseAccessTask extends android.os.AsyncTask<String, Void, JSONO
 	        param.add(new BasicNameValuePair("tag", params[0])); //tag
 	        param.add(new BasicNameValuePair("roomID", params[1]));
 	        param.add(new BasicNameValuePair("newURL", params[2]));
+	        JSONObject json = jsonParser.getJSONFromUrl(loginURL, param);
+	        return json;
+		}else if(params[0] == connection_change_dest_tag){
+			List<NameValuePair> param = new ArrayList<NameValuePair>();
+	        param.add(new BasicNameValuePair("tag", params[0])); //tag
+	        param.add(new BasicNameValuePair("connectionID", params[1]));
+	        param.add(new BasicNameValuePair("newDest", params[2]));
+	        JSONObject json = jsonParser.getJSONFromUrl(loginURL, param);
+	        return json;
+		}else if(params[0] == connection_delete_tag){
+			List<NameValuePair> param = new ArrayList<NameValuePair>();
+	        param.add(new BasicNameValuePair("tag", params[0])); //tag
+	        param.add(new BasicNameValuePair("connectionID", params[1]));
+	        JSONObject json = jsonParser.getJSONFromUrl(loginURL, param);
+	        return json;
+		}else if(params[0] == connection_create_tag){
+			List<NameValuePair> param = new ArrayList<NameValuePair>();
+	        param.add(new BasicNameValuePair("tag", params[0])); //tag
+	        param.add(new BasicNameValuePair("doorX", params[1]));
+	        param.add(new BasicNameValuePair("doorY", params[2]));
+	        param.add(new BasicNameValuePair("doorZ", params[3]));
+	        param.add(new BasicNameValuePair("sourceID", params[4]));
+	        param.add(new BasicNameValuePair("destinationID", params[5]));
+	        JSONObject json = jsonParser.getJSONFromUrl(loginURL, param);
+	        return json;
+		}else if(params[0] == connections_tag){
+			List<NameValuePair> param = new ArrayList<NameValuePair>();
+	        param.add(new BasicNameValuePair("tag", params[0])); //tag
+	        param.add(new BasicNameValuePair("roomID", params[1]));
 	        JSONObject json = jsonParser.getJSONFromUrl(loginURL, param);
 	        return json;
 		}

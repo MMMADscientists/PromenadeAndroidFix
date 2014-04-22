@@ -32,6 +32,9 @@ public class UserFunctions {
     private static String room_delete_tag = "deleteRoom";
     private static String house_delete_tag = "deleteProperty";
     private static String room_url_tag = "changeRoomURL";
+    private static String connection_change_dest_tag = "changeConnectionDestination";
+    private static String connection_delete_tag = "deleteConnection";
+    private static String connection_create_tag = "createConnection";
     
     
     // constructor
@@ -253,6 +256,70 @@ public class UserFunctions {
      public JSONObject changeURL(String roomID, String URL){
     	 DatabaseAccessTask dbAccess = new DatabaseAccessTask();
          dbAccess.execute(room_url_tag, roomID, URL);
+         JSONObject json = null;
+  		try {
+  			json = dbAccess.get();
+  		} catch (InterruptedException e) {
+  			// TODO Auto-generated catch block
+  			e.printStackTrace();
+  		} catch (ExecutionException e) {
+  			// TODO Auto-generated catch block
+  			e.printStackTrace();
+  		}
+        return json;
+     }
+     
+     public JSONObject changeDest(String currConID, String idRoomx){
+    	 DatabaseAccessTask dbAccess = new DatabaseAccessTask();
+         dbAccess.execute(connection_change_dest_tag, currConID, idRoomx);
+         JSONObject json = null;
+  		try {
+  			json = dbAccess.get();
+  		} catch (InterruptedException e) {
+  			// TODO Auto-generated catch block
+  			e.printStackTrace();
+  		} catch (ExecutionException e) {
+  			// TODO Auto-generated catch block
+  			e.printStackTrace();
+  		}
+        return json;
+     }
+     
+     public JSONObject deleteConnection(String currConID){
+    	 DatabaseAccessTask dbAccess = new DatabaseAccessTask();
+         dbAccess.execute(connection_delete_tag, currConID);
+         JSONObject json = null;
+  		try {
+  			json = dbAccess.get();
+  		} catch (InterruptedException e) {
+  			// TODO Auto-generated catch block
+  			e.printStackTrace();
+  		} catch (ExecutionException e) {
+  			// TODO Auto-generated catch block
+  			e.printStackTrace();
+  		}
+        return json;
+     }
+     
+     public JSONObject addConnection(String locX,String locY,String locZ,String dbID,String idDest){
+    	 DatabaseAccessTask dbAccess = new DatabaseAccessTask();
+         dbAccess.execute(connection_create_tag, locX, locY, locZ, dbID, idDest);
+         JSONObject json = null;
+  		try {
+  			json = dbAccess.get();
+  		} catch (InterruptedException e) {
+  			// TODO Auto-generated catch block
+  			e.printStackTrace();
+  		} catch (ExecutionException e) {
+  			// TODO Auto-generated catch block
+  			e.printStackTrace();
+  		}
+        return json;
+     }
+     
+     public JSONObject getConnection(String currConID){
+    	 DatabaseAccessTask dbAccess = new DatabaseAccessTask();
+         dbAccess.execute(connections_tag, currConID);
          JSONObject json = null;
   		try {
   			json = dbAccess.get();
