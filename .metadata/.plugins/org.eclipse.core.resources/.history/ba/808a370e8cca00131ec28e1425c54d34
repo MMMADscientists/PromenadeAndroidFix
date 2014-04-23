@@ -255,7 +255,7 @@ public class ConnectActivity extends Activity {
 			}
 		});
 		// use webgl url- need to add room id
-		webView.loadUrl("http://54.186.153.0/API/embedjs.php?i="+propID+"r="+dbID);
+		webView.loadUrl("http://54.186.153.0/API//embedjs.php?i="+propID);
 	}
 	
 	public void setJockeyEvents() {

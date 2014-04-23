@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -31,6 +32,8 @@ import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.view.KeyEvent;
 import android.view.View;
+import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.ViewSwitcher;
 import android.widget.Button;
 import android.widget.EditText;
@@ -70,22 +73,33 @@ public class ConnectActivity extends Activity {
 
 	private static String dbID;
 	private static String propID;
+	private static String currConID;
 	UserFunctions userFunctions;
 	public WebView webView;
 	private Jockey jockey;
 	
-	Button btnUp;
-	Button btnDown;
-	Button btnConfirm;
+	List<Integer> idRoom = new ArrayList<Integer>();
+	List<String> roomName = new ArrayList<String>();
+	
+	
+	ImageButton btnUp;
+	ImageButton btnDown;
+	ImageButton btnConfirm;
+	ImageButton btnDelete;
+	TextView name;
+	ViewSwitcher switcher;
 	
 	private static String KEY_SUCCESS = "success";
     private static String KEY_ERROR = "error";
     private static String KEY_ERROR_MSG = "error_msg";
     private static String KEY_TUPLE = "tuples";
     private static String KEY_IDROOM = "idRoom";
+    private static String KEY_IDCONNECTION = "connections";
+    private static String KEY_IDDEST = "idDest";
     private static String KEY_ROOMNAME = "name";
     private static String KEY_ROOMURL = "roomURL";
     private static String KEY_IDPROPERTY = "idProperty";
+    private static int index = 0;
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) 
@@ -99,18 +113,19 @@ public class ConnectActivity extends Activity {
 		
 		webView = (WebView) findViewById(R.id.webView);
 		
-		btnUp = (Button) findViewById(R.id.up);
-		btnDown = (Button) findViewById(R.id.down);
-		btnConfirm = (Button) findViewById(R.id.confirmDest);
-		
-		
+		btnUp = (ImageButton) findViewById(R.id.up);
+		btnDown = (ImageButton) findViewById(R.id.down);
+		btnConfirm = (ImageButton) findViewById(R.id.confirmDest);
+		btnDelete = (ImageButton) findViewById(R.id.deleteCon);
+		switcher = (ViewSwitcher) findViewById(R.id.connectionSwitch);
+		name = (TextView) findViewById(R.id.destName);
+		name.setText("No Connection Selected");
 		final UserFunctions userFunction = new UserFunctions();
 		JSONObject json = userFunction.getRooms(dbID);
     	
     	//lists of recieved data
-    	List<Integer> idRoom = new ArrayList<Integer>();
-    	List<String> roomName = new ArrayList<String>();
-    	final List<String> roomURL = new ArrayList<String>();
+    	
+    	//final List<String> roomURL = new ArrayList<String>();
     	
     	try {
                 if (json.getString(KEY_SUCCESS) != null) {
@@ -122,7 +137,7 @@ public class ConnectActivity extends Activity {
                     		JSONObject curTuple = tuples.getJSONObject(i);
                     		idRoom.add(curTuple.getInt(KEY_IDROOM));
                     		roomName.add(curTuple.getString(KEY_ROOMNAME));
-                    		roomURL.add(curTuple.getString(KEY_ROOMURL));
+                    		//roomURL.add(curTuple.getString(KEY_ROOMURL));
                     	}
                     }
                         
@@ -131,7 +146,82 @@ public class ConnectActivity extends Activity {
                 e.printStackTrace();
             }
     	
+    	if(idRoom.size() >= 2 && idRoom.get(index).toString() == dbID)
+    	{
+    		index++;
+    	}
+    	name.setText(roomName.get(index));
     	
+    	btnUp.setOnClickListener(new View.OnClickListener() 
+		{
+
+			@Override
+			public void onClick(View arg0) {
+				
+				if(index == 0)
+				{
+					index = idRoom.size()-1;
+				}
+				else
+				{
+					index--;
+				}
+				name.setText(roomName.get(index));
+			}
+			 
+		 });
+    	
+    	btnDown.setOnClickListener(new View.OnClickListener() 
+		{
+
+			@Override
+			public void onClick(View arg0) {
+				
+				if(index == idRoom.size()-1)
+				{
+					index = 0;
+				}
+				else
+				{
+					index++;
+				}
+				name.setText(roomName.get(index));
+
+			}
+			 
+		 });
+    	
+    	btnConfirm.setOnClickListener(new View.OnClickListener() 
+		{
+
+			@Override
+			public void onClick(View arg0) {
+				
+				/* update connection in db with id currConId
+				 	send jockeyjs message to webgl
+				 	context switch
+				 */
+				userFunctions.changeDest(currConID,idRoom.get(index).toString());
+				switcher.showPrevious();
+				// refresh screen
+				webView.reload();
+			}
+			 
+		 });
+    	
+    	btnDelete.setOnClickListener(new View.OnClickListener() 
+		{
+
+			@Override
+			public void onClick(View arg0) {
+				
+				userFunctions.deleteConnection(currConID);
+				switcher.showPrevious();
+				// refresh screen
+				webView.reload();
+			}
+			 
+		 });
     	
 	}
 	
@@ -164,19 +254,63 @@ public class ConnectActivity extends Activity {
 				return true;
 			}
 		});
-		// use webgl url
-		webView.loadUrl("file:///android_asset/index.html");
+		// use webgl url- need to add room id
+		webView.loadUrl("http://54.186.153.0/API//embedjs.php?i="+propID);
 	}
 	
 	public void setJockeyEvents() {
 
-		
-		jockey.on("propertySelect", new JockeyHandler() {
+		jockey.on("propertyEdit", new JockeyHandler() {
 			
 			@Override
-			protected void doPerform(Map<Object, Object> arg0) {
-				// TODO Auto-generated method stub
+			protected void doPerform(Map<Object, Object> conInfo) {
+				currConID = (String) conInfo.get("ID");
+				JSONObject jsonID = userFunctions.getConnection(currConID);
+				Integer destID=0;
+				try {
+					destID = jsonID.getJSONObject(KEY_TUPLE).getInt(KEY_IDDEST);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					
+				}
+				for(int i =0; i < idRoom.size(); i++)
+				{
+					if(idRoom.get(i) == destID)
+					{
+						index = i;
+						name.setText(roomName.get(index));
+						break;
+					}
+				}
+				switcher.showNext();
+				// refresh screen
+				webView.reload();
+			}
+			
+		});
+		jockey.on("propertyCreate", new JockeyHandler() {
+			
+			@Override
+			protected void doPerform(Map<Object, Object> conInfo) {
 				
+				Integer locX = (Integer) conInfo.get("x");
+				Integer locY = (Integer) conInfo.get("y");
+				Integer locZ = (Integer) conInfo.get("z");
+				
+				JSONObject jsonID = userFunctions.addConnection(locX.toString(),locY.toString(),locZ.toString(),dbID,idRoom.get(index).toString());
+				String conID = "";
+				try {
+					conID = jsonID.getJSONObject(KEY_TUPLE).getString(KEY_IDCONNECTION);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					
+				}
+				currConID = conID;
+				switcher.showNext();
+				// refresh screen
+				webView.reload();
 			}
 		});
 	}
