@@ -1,5 +1,6 @@
 package com.promenadevt;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
@@ -12,14 +13,18 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.provider.MediaStore.Images;
 import android.provider.OpenableColumns;
 import android.view.KeyEvent;
 import android.view.View;
@@ -61,6 +66,8 @@ public class EditActivity extends Activity
 	
 	UserFunctions userFunctions;
 	
+	Bitmap bitmap;
+	
 
 	private static String username;
 	private static String roomName;
@@ -94,18 +101,25 @@ public class EditActivity extends Activity
 	
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data){
-		if( requestCode == CAMERA_PIC_REQUEST){
-			Bitmap thumbnail = (Bitmap) data.getExtras().get("data");
-			roomImage.setImageBitmap(thumbnail);
-		}
-		else if(requestCode == PHOTO_SELECTED){
+		if(requestCode == PHOTO_SELECTED){
 			if (resultCode == RESULT_OK) {
 
 				Uri selectedImage = data.getData();
-				//Bitmap thumbnail = (Bitmap) data.getExtras().get("data");
-				roomImage.setImageURI(selectedImage);
+				bitmap = null;
+				try {
+					bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
+					roomImage.setImageBitmap(getResizedBitmap(bitmap,2048,2048));
+					selectedImage = getImageUri(getContentResolver(),bitmap);
+					bitmap.recycle();
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				new S3PutObjectTask().execute(selectedImage);
-				userFunctions.changeURL(dbID, "https://s3-us-west-2.amazonaws.com/promenadevt-1/room"+dbID);
+				userFunctions.changeURL(dbID, "https:s3-us-west-2.amazonaws.com/promenadevt-1/room"+dbID);
 			}
 		}
 		super.onActivityResult(requestCode, resultCode, data);
@@ -123,6 +137,7 @@ public class EditActivity extends Activity
 	        	rooms.putExtra("id",propID);
 	        	rooms.putExtra("addr", addr);
 	            startActivity(rooms);
+	            finish();
 	            return true;
 	        }
 
@@ -152,7 +167,7 @@ public class EditActivity extends Activity
 		inputName = (EditText) findViewById(R.id.nameRoom);
 		inputName.setText(roomName);
 		dbID = intent.getStringExtra("id");
-		roomURL = "https://s3-us-west-2.amazonaws.com/promenadevt-1/room"+dbID;
+		roomURL = intent.getStringExtra("url");//"https://s3-us-west-2.amazonaws.com/promenadevt-1/room"+dbID;
 		Constants = new Constants(propID,dbID);
 		
 		btnChangeName = (Button) findViewById(R.id.btnUpdateR);
@@ -167,14 +182,15 @@ public class EditActivity extends Activity
 		
 		userFunctions = new UserFunctions();
 		
-		if(roomURL != null){
+		if(roomURL != ""){
 			try {
-				Bitmap bitmap = new S3GetObjectTask().execute().get();
-				roomImage.setImageBitmap(bitmap);
+				bitmap = new S3GetObjectTask().execute().get();
+				roomImage.setImageBitmap(getResizedBitmap(bitmap,2048,2048));
+				bitmap.recycle();
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			} catch (ExecutionException e) {
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -271,6 +287,26 @@ public class EditActivity extends Activity
 		 });
 		
 		 
+	}
+	
+	public Bitmap getResizedBitmap(Bitmap bm, int newHeight, int newWidth) {
+	    try{
+			int width = bm.getWidth();
+		    int height = bm.getHeight();
+		    float scaleWidth = ((float) newWidth) / width;
+		    float scaleHeight = ((float) newHeight) / height;
+		    // CREATE A MATRIX FOR THE MANIPULATION
+		    Matrix matrix = new Matrix();
+		    // RESIZE THE BIT MAP
+		    matrix.postScale(scaleWidth, scaleHeight);
+	
+		    // "RECREATE" THE NEW BITMAP
+		    Bitmap resizedBitmap = Bitmap.createBitmap(bm, 0, 0, width, height, matrix, false);
+		    return resizedBitmap;
+	    }catch(Exception e){
+	    	e.printStackTrace();
+	    	return null;
+	    }
 	}
 	//AMAZON S3 STUFF HERE *********************************************************************************************************
 	private class S3PutObjectTask extends AsyncTask<Uri, Void, S3TaskResult> {
@@ -458,6 +494,13 @@ public class EditActivity extends Activity
 					});
 
 			confirm.show().show();
+		}
+
+		public Uri getImageUri(ContentResolver inContext, Bitmap inImage) {
+			  ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+			  inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+			  String path = Images.Media.insertImage(inContext, inImage, "Title", null);
+			  return Uri.parse(path);
 		}
 }
 

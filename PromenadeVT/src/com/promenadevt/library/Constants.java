@@ -30,7 +30,7 @@ public class Constants {
 	}
 
 
-	public String getPictureBucket() {
+	public static String getPictureBucket() {
 		return ("promenadevt-1").toLowerCase(Locale.US);
 	}
 

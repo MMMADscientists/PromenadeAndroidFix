@@ -105,7 +105,7 @@ public class ConnectActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) 
 	{
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.edit_room);
+		setContentView(R.layout.connections);
 		
 		Intent intent = getIntent();
 		propID = intent.getStringExtra("propID");
@@ -121,7 +121,7 @@ public class ConnectActivity extends Activity {
 		name = (TextView) findViewById(R.id.destName);
 		name.setText("No Connection Selected");
 		final UserFunctions userFunction = new UserFunctions();
-		JSONObject json = userFunction.getRooms(dbID);
+		JSONObject json = userFunction.getRooms(propID);
     	
     	//lists of recieved data
     	
@@ -255,13 +255,15 @@ public class ConnectActivity extends Activity {
 			}
 		});
 		// use webgl url- need to add room id
-		webView.loadUrl("http://54.186.153.0/API/embedjs.php?i="+propID+"r="+dbID);
+
+		webView.loadUrl("http://54.186.153.0/API/index.php?tag=addConnections&i="+propID+"&r="+dbID);
+
 	}
 	
 	public void setJockeyEvents() {
 
 		jockey.on("propertyEdit", new JockeyHandler() {
-			
+
 			@Override
 			protected void doPerform(Map<Object, Object> conInfo) {
 				currConID = (String) conInfo.get("id");
@@ -272,7 +274,7 @@ public class ConnectActivity extends Activity {
 				} catch (JSONException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-					
+
 				}
 				for(int i =0; i < idRoom.size(); i++)
 				{
@@ -287,17 +289,17 @@ public class ConnectActivity extends Activity {
 				// refresh screen
 				webView.reload();
 			}
-			
+
 		});
 		jockey.on("propertyCreate", new JockeyHandler() {
-			
+
 			@Override
 			protected void doPerform(Map<Object, Object> conInfo) {
-				
+
 				Integer locX = (Integer) conInfo.get("x");
 				Integer locY = (Integer) conInfo.get("y");
 				Integer locZ = (Integer) conInfo.get("z");
-				
+
 				JSONObject jsonID = userFunctions.addConnection(locX.toString(),locY.toString(),locZ.toString(),dbID,idRoom.get(index).toString());
 				String conID = "";
 				try {
@@ -305,7 +307,7 @@ public class ConnectActivity extends Activity {
 				} catch (JSONException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-					
+
 				}
 				currConID = conID;
 				switcher.showNext();
