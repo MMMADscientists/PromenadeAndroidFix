@@ -31,8 +31,11 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.ViewSwitcher;
 import android.widget.Button;
@@ -101,6 +104,34 @@ public class ConnectActivity extends Activity {
     private static String KEY_IDPROPERTY = "idProperty";
     private static int index = 0;
 	
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event)  {
+        if (keyCode == KeyEvent.KEYCODE_BACK ) {
+            // do something on back.
+        	//DatabaseHandler db = new DatabaseHandler(getApplicationContext());
+        	Intent edit = new Intent(getApplicationContext(), EditActivity.class);
+        	//HashMap<String, String> loginInfo = db.getUserDetails();
+        	Intent intent = getIntent();
+    		// pull info from previous page
+    		String user = intent.getStringExtra("user");
+    		String name = intent.getStringExtra("name");
+    		String addr = intent.getStringExtra("addr");
+    		String roomURL = intent.getStringExtra("url");
+    		edit.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+    		edit.putExtra("user", user);
+    		edit.putExtra("name", name);
+    		edit.putExtra("propID", propID);
+    		edit.putExtra("addr", addr);
+    		edit.putExtra("id",dbID);
+    		edit.putExtra("url", roomURL);
+            startActivity(edit);
+            finish();
+            return true;
+        }
+
+        return super.onKeyDown(keyCode, event);
+    }
+    
 	@Override
     public void onCreate(Bundle savedInstanceState) 
 	{
@@ -122,6 +153,7 @@ public class ConnectActivity extends Activity {
 		name.setText("No Connection Selected");
 		final UserFunctions userFunction = new UserFunctions();
 		JSONObject json = userFunction.getRooms(propID);
+		userFunctions = new UserFunctions();
     	
     	//lists of recieved data
     	
@@ -294,23 +326,32 @@ public class ConnectActivity extends Activity {
 		jockey.on("propertyCreate", new JockeyHandler() {
 
 			@Override
-			protected void doPerform(Map<Object, Object> conInfo) {
+			protected void doPerform(final Map<Object, Object> conInfo) {
 
-				Integer locX = (Integer) conInfo.get("x");
-				Integer locY = (Integer) conInfo.get("y");
-				Integer locZ = (Integer) conInfo.get("z");
-
-				JSONObject jsonID = userFunctions.addConnection(locX.toString(),locY.toString(),locZ.toString(),dbID,idRoom.get(index).toString());
-				String conID = "";
-				try {
-					conID = jsonID.getJSONObject(KEY_TUPLE).getString(KEY_IDCONNECTION);
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-
+				PopupMenu popup = new PopupMenu(ConnectActivity.this, name);
+				for(int i=0;i<idRoom.size();i++){
+					popup.getMenu().add(Menu.NONE, i, Menu.NONE, roomName.get(i));
 				}
-				currConID = conID;
-				switcher.showNext();
+					
+				popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {  
+		             public boolean onMenuItemClick(MenuItem item) {
+		            	 int i = item.getItemId();
+			             String locX = ((Double) conInfo.get("x")).intValue() + "";
+			             String locY = ((Double) conInfo.get("y")).intValue() + "";
+						 String locZ = ((Double) conInfo.get("z")).intValue() + "";
+						 Log.e("getInfo", locX.toString());
+						 Log.e("getInfo", locY.toString());
+						 Log.e("getInfo", locZ.toString());
+						 Log.e("addConnection","roomID = " + dbID);
+						 Log.e("addConnection","index = " + i );
+						 Log.e("addConnection","size of idRoom = " + idRoom.size() + "");
+						 Log.e("addConnection","idRoom at i = " + idRoom.get(i));
+					     userFunctions.addConnection(locX,locY,locZ,dbID,idRoom.get(i).toString());
+					  
+		              return true;  
+		             }
+				});
+				popup.show();
 				// refresh screen
 				webView.reload();
 			}

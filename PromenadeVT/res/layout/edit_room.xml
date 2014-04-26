@@ -45,12 +45,6 @@
             android:text="Add Connection" />
 
         <Button
-            android:id="@+id/btnView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="View Room" />
-
-        <Button
             android:id="@+id/btnDelete"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

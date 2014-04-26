@@ -303,6 +303,7 @@ public class UserFunctions {
      }
      
      public JSONObject addConnection(String locX,String locY,String locZ,String dbID,String idDest){
+    	 Log.e("addConnection","made it here");
     	 DatabaseAccessTask dbAccess = new DatabaseAccessTask();
          dbAccess.execute(connection_create_tag, locX, locY, locZ, dbID, idDest);
          JSONObject json = null;

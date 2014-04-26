@@ -1,13 +1,21 @@
 package com.promenadevt;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.sql.Date;
 import java.util.concurrent.ExecutionException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.net.ftp.FTP;
+import org.apache.commons.net.ftp.FTPClient;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -26,6 +34,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images;
 import android.provider.OpenableColumns;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ViewSwitcher;
@@ -34,6 +43,12 @@ import android.widget.EditText;
 import android.widget.ImageView;
 
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.javax.xml.stream.xerces.util.URI;
+import com.amazonaws.org.apache.http.HttpVersion;
+import com.amazonaws.org.apache.http.client.HttpClient;
+import com.amazonaws.org.apache.http.client.methods.HttpPost;
+import com.amazonaws.org.apache.http.impl.client.DefaultHttpClient;
+import com.amazonaws.org.apache.http.params.CoreProtocolPNames;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -48,6 +63,7 @@ import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.promenadevt.android.R;
 import com.promenadevt.library.Constants;
 import com.promenadevt.library.UserFunctions;
+
 
 
 
@@ -103,23 +119,11 @@ public class EditActivity extends Activity
 	protected void onActivityResult(int requestCode, int resultCode, Intent data){
 		if(requestCode == PHOTO_SELECTED){
 			if (resultCode == RESULT_OK) {
-
-				Uri selectedImage = data.getData();
-				bitmap = null;
-				try {
-					bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
-					roomImage.setImageBitmap(getResizedBitmap(bitmap,2048,2048));
-					selectedImage = getImageUri(getContentResolver(),bitmap);
-					bitmap.recycle();
-				} catch (FileNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				new S3PutObjectTask().execute(selectedImage);
-				userFunctions.changeURL(dbID, "https:s3-us-west-2.amazonaws.com/promenadevt-1/room"+dbID);
+				Uri contentURI = data.getData();
+				Log.v("get content: data",data.toString());
+				Log.v("get content: uri",contentURI.toString());
+				userFunctions.changeURL(dbID, "/home/android/files/room" + dbID);
+				new EC2UploadTask().execute(contentURI);
 			}
 		}
 		super.onActivityResult(requestCode, resultCode, data);
@@ -173,7 +177,7 @@ public class EditActivity extends Activity
 		btnChangeName = (Button) findViewById(R.id.btnUpdateR);
 		btnTakePhoto = (Button) findViewById(R.id.btnPhoto);
 		btnAddConnection = (Button) findViewById(R.id.btnConnection);
-		btnViewRoom = (Button) findViewById(R.id.btnView);
+		//btnViewRoom = (Button) findViewById(R.id.btnView);
 		btnDelete = (Button) findViewById(R.id.btnDelete);
 		btnDeleteYes = (Button) findViewById(R.id.btnDeleteRoomYes);
 		btnDeleteNo = (Button) findViewById(R.id.btnDeleteRoomNo);
@@ -181,20 +185,6 @@ public class EditActivity extends Activity
 		roomImage =(ImageView) findViewById(R.id.PhotoCaptured);
 		
 		userFunctions = new UserFunctions();
-		
-		if(roomURL != ""){
-			try {
-				bitmap = new S3GetObjectTask().execute().get();
-				roomImage.setImageBitmap(getResizedBitmap(bitmap,2048,2048));
-				bitmap.recycle();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
 		
         btnChangeName.setOnClickListener(new View.OnClickListener() 
 		{
@@ -233,22 +223,37 @@ public class EditActivity extends Activity
                         ConnectActivity.class);
 				next.putExtra("id",dbID);
 				next.putExtra("propID",propID);
+				next.putExtra("user", username);
+				next.putExtra("name", roomName);
+				next.putExtra("addr", addr);
+				next.putExtra("url", roomURL);
                 startActivity(next);
                 finish();
 			}
 			 
 		 });
         
-        btnViewRoom.setOnClickListener(new View.OnClickListener() 
+        /*btnViewRoom.setOnClickListener(new View.OnClickListener() 
 		{
 
 			@Override
 			public void onClick(View arg0) {
-				// view room as it is now
-				//new S3GeneratePresignedUrlTask().execute();
+				try {
+					bitmap = new EC2GetOpbectTask().execute().get();
+					roomImage.setImageBitmap(getResizedBitmap(bitmap,2048,2048));
+					bitmap.recycle();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (ExecutionException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
 			}
 			 
-		 });
+		 });*/
+		
         
         btnDelete.setOnClickListener(new View.OnClickListener() 
 		{
@@ -309,6 +314,22 @@ public class EditActivity extends Activity
 	    }
 	}
 	//AMAZON S3 STUFF HERE *********************************************************************************************************
+	private class EC2UploadTask extends AsyncTask<Uri, Void, Void>{
+
+		@Override
+		protected Void doInBackground(Uri... params) {
+			// TODO Auto-generated method stub
+			try {
+				upload(params[0]);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return null;
+		}
+		
+	}
+	/*
 	private class S3PutObjectTask extends AsyncTask<Uri, Void, S3TaskResult> {
 
 		ProgressDialog dialog;
@@ -501,6 +522,127 @@ public class EditActivity extends Activity
 			  inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
 			  String path = Images.Media.insertImage(inContext, inImage, "Title", null);
 			  return Uri.parse(path);
+		}*/
+		
+		private class EC2GetOpbectTask extends
+		AsyncTask<Void, Void, Bitmap> {
+
+			@Override
+			protected Bitmap doInBackground(Void... params) {
+				// TODO Auto-generated method stub
+				return download();
+			}
+			
 		}
+		
+		public void upload(Uri data) throws IOException
+	    {
+			FTPClient con = null;
+			String fileName = "room" + dbID;
+			try
+            {
+				InputStream in = getContentResolver().openInputStream(data);
+				
+                con = new FTPClient();
+                con.connect("54.186.153.0");
+                Log.v("uploadPic","connected, " + con.getReplyString());
+                if (con.login(Constants.ACCESS_KEY_ID, Constants.ACCESS_KEY_ID+"1"))
+                {
+                	Log.v("uploadPic","logged in" + con.getReplyString());
+                	
+                    con.enterLocalPassiveMode();                   // Very Important
+                    Log.v("uploadPic","Set Passive Mode" + con.getReplyString());
+                    
+                    con.setFileType(FTP.BINARY_FILE_TYPE);        //  Very Important
+                    Log.v("uploadPic","set binary file type" + con.getReplyString());
+                    
+                    //FileInputStream in = new FileInputStream(new File(data));
+                    con.changeWorkingDirectory("/files");
+                    Log.v("uploadPic","changed directory" +  con.getReplyString());
+                    boolean result = con.storeFile(fileName, in);
+                    in.close();
+                    if (result) Log.v("upload result", "succeeded"+ con.getReplyString());
+                    con.logout();
+                    con.disconnect();
+                }
+                else{
+                	Log.e("uploadPic","failed to log in, "+con.getReplyString());
+                }
+                Log.v("uploadPic","Finished");
+            }catch (Exception e)
+            {
+                e.printStackTrace();
+                Log.e("uploadPic","failed to log in");
+            }
+	    }
+		
+		public Bitmap download(){
+			FTPClient con = null;
+			String fileName = "room" + dbID;
+			try{
+				con = new FTPClient();
+				con.connect("54.186.153.0");
+                Log.v("doanloadPic","connected, " + con.getReplyString());
+                if (con.login(Constants.ACCESS_KEY_ID, Constants.ACCESS_KEY_ID+"1"))
+                {
+                	Log.v("doanloadPic","logged in" + con.getReplyString());
+                	
+                	con.enterLocalPassiveMode();                   // Very Important
+                    Log.v("downloadPic","Set Passive Mode" + con.getReplyString());
+                	
+                    con.setFileType(FTP.BINARY_FILE_TYPE);        //  Very Important
+                    Log.v("downloadPic","set binary file type" + con.getReplyString());
+                    
+                    con.changeWorkingDirectory("/files");
+                    Log.v("downloadPic","changed directory" +  con.getReplyString());
+                    
+                    FileOutputStream out = openFileOutput("room"+dbID,Context.MODE_PRIVATE);
+                    
+                    if(con.retrieveFile(fileName, out)){
+                    	Log.v("downloadPic","downloaded file," + con.getReplyString());
+                    }
+                	out.close();
+                	con.logout();
+                    con.disconnect();
+                    byte[] bytes = null;
+                    FileInputStream in = new FileInputStream(getFileStreamPath("room" + dbID));
+    				try {
+    					bytes = IOUtils.toByteArray(in);
+    				} catch (IOException e) {
+    					// TODO Auto-generated catch block
+    					e.printStackTrace();
+    				}
+    				Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+    				return bitmap;
+                }
+			}catch (Exception e)
+		    {
+		        Log.v("download result","failed");
+		        e.printStackTrace();
+		    }
+			return null;
+		}
+		
+		/*public String getRealPathFromURI(Context context,Uri contentUri) {
+
+	        // can post image
+			Cursor cursor=null;
+			try{
+		        String [] proj={MediaStore.Images.Media.DATA};
+		        cursor = context.getContentResolver().query( contentUri,
+		                        proj, // Which columns to return
+		                        null,       // WHERE clause; which rows to return (all rows)
+		                        null,       // WHERE clause selection arguments (none)
+		                        null); // Order-by clause (ascending by name)
+		        int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+		        cursor.moveToFirst();
+	
+		        return cursor.getString(column_index);
+			}finally{
+			if(cursor != null)
+				cursor.close();
+			}
+		}*/
+		
 }
 

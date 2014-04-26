@@ -3,4 +3,18 @@
 <fullyQualifiedTypeName name="android.widget.TextView"/>
 <fullyQualifiedTypeName name="android.widget.ImageButton"/>
 <fullyQualifiedTypeName name="java.util.HashMap"/>
+<fullyQualifiedTypeName name="android.widget.PopupMenu"/>
+<fullyQualifiedTypeName name="android.view.MenuItem"/>
+<fullyQualifiedTypeName name="android.view.Menu"/>
+<fullyQualifiedTypeName name="com.amazonaws.org.apache.http.client.HttpClient"/>
+<fullyQualifiedTypeName name="com.amazonaws.org.apache.http.impl.client.DefaultHttpClient"/>
+<fullyQualifiedTypeName name="com.amazonaws.org.apache.http.params.CoreProtocolPNames"/>
+<fullyQualifiedTypeName name="com.amazonaws.org.apache.http.HttpVersion"/>
+<fullyQualifiedTypeName name="com.amazonaws.org.apache.http.client.methods.HttpPost"/>
+<fullyQualifiedTypeName name="java.io.File"/>
+<fullyQualifiedTypeName name="org.apache.commons.net.ftp.FTPClient"/>
+<fullyQualifiedTypeName name="org.apache.commons.net.ftp.FTP"/>
+<fullyQualifiedTypeName name="java.io.FileInputStream"/>
+<fullyQualifiedTypeName name="android.util.Log"/>
+<fullyQualifiedTypeName name="org.apache.commons.io.FileUtils"/>
 </qualifiedTypeNameHistroy>
