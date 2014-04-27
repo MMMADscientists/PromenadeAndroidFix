@@ -178,6 +178,7 @@ public class DatabaseAccessTask extends android.os.AsyncTask<String, Void, JSONO
 	        JSONObject json = jsonParser.getJSONFromUrl(loginURL, param);
 	        return json;
 		}
+		//connection_info_tag
 		return null;
 	}
 

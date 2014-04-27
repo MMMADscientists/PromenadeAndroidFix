@@ -297,9 +297,9 @@ public class ConnectActivity extends Activity {
 		jockey.on("propertyEdit", new JockeyHandler() {
 
 			@Override
-			protected void doPerform(Map<Object, Object> conInfo) {
+			protected void doPerform(final Map<Object, Object> conInfo) {
 				currConID = (String) conInfo.get("id");
-				JSONObject jsonID = userFunctions.getConnection(currConID);
+				JSONObject jsonID = userFunctions.getConnectionInfo(currConID);
 				Integer destID=0;
 				try {
 					destID = jsonID.getJSONObject(KEY_TUPLE).getInt(KEY_IDDEST);
@@ -308,16 +308,31 @@ public class ConnectActivity extends Activity {
 					e.printStackTrace();
 
 				}
+				PopupMenu popup = new PopupMenu(ConnectActivity.this, name);
 				for(int i =0; i < idRoom.size(); i++)
 				{
-					if(idRoom.get(i) == destID)
-					{
-						index = i;
-						name.setText(roomName.get(index));
-						break;
-					}
+					popup.getMenu().add(Menu.NONE, i, Menu.NONE, roomName.get(i));
 				}
-				switcher.showNext();
+				popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {  
+		             public boolean onMenuItemClick(MenuItem item) {
+		            	 int i = item.getItemId();
+			             String locX = ((Double) conInfo.get("x")).intValue() + "";
+			             String locY = ((Double) conInfo.get("y")).intValue() + "";
+						 String locZ = ((Double) conInfo.get("z")).intValue() + "";
+						 Log.e("getInfo", locX.toString());
+						 Log.e("getInfo", locY.toString());
+						 Log.e("getInfo", locZ.toString());
+						 Log.e("addConnection","roomID = " + dbID);
+						 Log.e("addConnection","index = " + i );
+						 Log.e("addConnection","size of idRoom = " + idRoom.size() + "");
+						 Log.e("addConnection","idRoom at i = " + idRoom.get(i));
+						 userFunctions.deleteConnection(currConID);
+					     userFunctions.addConnection(locX,locY,locZ,dbID,idRoom.get(i).toString());
+					  
+		              return true;  
+		             }
+				});
+				//switcher.showNext();
 				// refresh screen
 				webView.reload();
 			}

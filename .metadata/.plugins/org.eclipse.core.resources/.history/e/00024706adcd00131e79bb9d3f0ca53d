@@ -36,7 +36,6 @@ public class UserFunctions {
     private static String connection_delete_tag = "deleteConnection";
     private static String connection_create_tag = "createConnection";
     private static String change_house_url_tag = "changeHouseURL";
-    private static String connection_info_tag = "connectionInfo";
     
     
     // constructor
@@ -353,20 +352,4 @@ public class UserFunctions {
         return json;
      }
      
-     public JSONObject getConnectionInfo(String connectionID){
-    	 DatabaseAccessTask dbAccess = new DatabaseAccessTask();
-         dbAccess.execute(connection_info_tag, connectionID);
-         JSONObject json = null;
-  		try {
-  			json = dbAccess.get();
-  		} catch (InterruptedException e) {
-  			// TODO Auto-generated catch block
-  			e.printStackTrace();
-  		} catch (ExecutionException e) {
-  			// TODO Auto-generated catch block
-  			e.printStackTrace();
-  		}
-        return json;
-     }
-
 }

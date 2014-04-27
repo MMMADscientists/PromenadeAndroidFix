@@ -37,7 +37,6 @@ public class DatabaseAccessTask extends android.os.AsyncTask<String, Void, JSONO
 	    private static String connection_delete_tag = "deleteConnection";
 	    private static String connection_create_tag = "createConnection";
 	    private static String change_house_url_tag = "changeHouseURL";
-	    private static String connection_info_tag = "connectionInfo";
 	    
 
 	private static String loginURL = "http://54.186.153.0/API/index.php";
@@ -169,12 +168,6 @@ public class DatabaseAccessTask extends android.os.AsyncTask<String, Void, JSONO
 	        param.add(new BasicNameValuePair("tag", params[0])); //tag
 	        param.add(new BasicNameValuePair("propertyID", params[1]));
 	        param.add(new BasicNameValuePair("newURL", params[2]));
-	        JSONObject json = jsonParser.getJSONFromUrl(loginURL, param);
-	        return json;
-		}else if(params[0] == connection_info_tag){
-			List<NameValuePair> param = new ArrayList<NameValuePair>();
-	        param.add(new BasicNameValuePair("tag", params[0])); //tag
-	        param.add(new BasicNameValuePair("connectionID", params[1]));
 	        JSONObject json = jsonParser.getJSONFromUrl(loginURL, param);
 	        return json;
 		}

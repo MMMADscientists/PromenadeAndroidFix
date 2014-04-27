@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -30,8 +31,11 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.ViewSwitcher;
 import android.widget.Button;
@@ -83,7 +87,8 @@ public class ConnectActivity extends Activity {
 	
 	ImageButton btnUp;
 	ImageButton btnDown;
-	Button btnConfirm;
+	ImageButton btnConfirm;
+	ImageButton btnDelete;
 	TextView name;
 	ViewSwitcher switcher;
 	
@@ -93,16 +98,45 @@ public class ConnectActivity extends Activity {
     private static String KEY_TUPLE = "tuples";
     private static String KEY_IDROOM = "idRoom";
     private static String KEY_IDCONNECTION = "connections";
+    private static String KEY_IDDEST = "idDest";
     private static String KEY_ROOMNAME = "name";
     private static String KEY_ROOMURL = "roomURL";
     private static String KEY_IDPROPERTY = "idProperty";
     private static int index = 0;
 	
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event)  {
+        if (keyCode == KeyEvent.KEYCODE_BACK ) {
+            // do something on back.
+        	//DatabaseHandler db = new DatabaseHandler(getApplicationContext());
+        	Intent edit = new Intent(getApplicationContext(), EditActivity.class);
+        	//HashMap<String, String> loginInfo = db.getUserDetails();
+        	Intent intent = getIntent();
+    		// pull info from previous page
+    		String user = intent.getStringExtra("user");
+    		String name = intent.getStringExtra("name");
+    		String addr = intent.getStringExtra("addr");
+    		String roomURL = intent.getStringExtra("url");
+    		edit.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+    		edit.putExtra("user", user);
+    		edit.putExtra("name", name);
+    		edit.putExtra("propID", propID);
+    		edit.putExtra("addr", addr);
+    		edit.putExtra("id",dbID);
+    		edit.putExtra("url", roomURL);
+            startActivity(edit);
+            finish();
+            return true;
+        }
+
+        return super.onKeyDown(keyCode, event);
+    }
+    
 	@Override
     public void onCreate(Bundle savedInstanceState) 
 	{
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.edit_room);
+		setContentView(R.layout.connections);
 		
 		Intent intent = getIntent();
 		propID = intent.getStringExtra("propID");
@@ -112,12 +146,14 @@ public class ConnectActivity extends Activity {
 		
 		btnUp = (ImageButton) findViewById(R.id.up);
 		btnDown = (ImageButton) findViewById(R.id.down);
-		btnConfirm = (Button) findViewById(R.id.confirmDest);
+		btnConfirm = (ImageButton) findViewById(R.id.confirmDest);
+		btnDelete = (ImageButton) findViewById(R.id.deleteCon);
 		switcher = (ViewSwitcher) findViewById(R.id.connectionSwitch);
 		name = (TextView) findViewById(R.id.destName);
 		name.setText("No Connection Selected");
 		final UserFunctions userFunction = new UserFunctions();
-		JSONObject json = userFunction.getRooms(dbID);
+		JSONObject json = userFunction.getRooms(propID);
+		userFunctions = new UserFunctions();
     	
     	//lists of recieved data
     	
@@ -196,9 +232,25 @@ public class ConnectActivity extends Activity {
 				/* update connection in db with id currConId
 				 	send jockeyjs message to webgl
 				 	context switch
-				 
 				 */
+				userFunctions.changeDest(currConID,idRoom.get(index).toString());
 				switcher.showPrevious();
+				// refresh screen
+				webView.reload();
+			}
+			 
+		 });
+    	
+    	btnDelete.setOnClickListener(new View.OnClickListener() 
+		{
+
+			@Override
+			public void onClick(View arg0) {
+				
+				userFunctions.deleteConnection(currConID);
+				switcher.showPrevious();
+				// refresh screen
+				webView.reload();
 			}
 			 
 		 });
@@ -234,50 +286,74 @@ public class ConnectActivity extends Activity {
 				return true;
 			}
 		});
-		// use webgl url
-		webView.loadUrl("http://54.186.153.0/API//embedjs.php?i="+propID);
+		// use webgl url- need to add room id
+
+		webView.loadUrl("http://54.186.153.0/API/index.php?tag=addConnections&i="+propID+"&r="+dbID);
+
 	}
 	
 	public void setJockeyEvents() {
 
-		
-		jockey.on("propertySelect", new JockeyHandler() {
-			
+		jockey.on("propertyEdit", new JockeyHandler() {
+
 			@Override
 			protected void doPerform(Map<Object, Object> conInfo) {
-				
-				/* check if is new connection
-				if new
-					create new connection in db
-					update currConId
-					context switch
-				else
-					update currConId
-					context switch
-			*/
-				if(conInfo.get("isNew") == "true")
+				currConID = (String) conInfo.get("id");
+				JSONObject jsonID = userFunctions.getConnection(currConID);
+				Integer destID=0;
+				try {
+					destID = jsonID.getJSONObject(KEY_TUPLE).getInt(KEY_IDDEST);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+
+				}
+				for(int i =0; i < idRoom.size(); i++)
 				{
-					Integer locX = (Integer) conInfo.get("X");
-					Integer locY = (Integer) conInfo.get("Y");
-					Integer locZ = (Integer) conInfo.get("Z");
-					
-					JSONObject jsonID = userFunctions.addConnection(locX,locY,locZ,dbID,idRoom.get(index));
-					String conID = "";
-					try {
-						value = jsonID.getJSONObject(KEY_TUPLE).getString(KEY_IDCONNECTION);
-					} catch (JSONException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-						
+					if(idRoom.get(i) == destID)
+					{
+						index = i;
+						name.setText(roomName.get(index));
+						break;
 					}
-					
 				}
-				else
-				{
-					
-				}
-				
 				switcher.showNext();
+				// refresh screen
+				webView.reload();
+			}
+
+		});
+		jockey.on("propertyCreate", new JockeyHandler() {
+
+			@Override
+			protected void doPerform(final Map<Object, Object> conInfo) {
+
+				PopupMenu popup = new PopupMenu(ConnectActivity.this, name);
+				for(int i=0;i<idRoom.size();i++){
+					popup.getMenu().add(Menu.NONE, i, Menu.NONE, roomName.get(i));
+				}
+					
+				popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {  
+		             public boolean onMenuItemClick(MenuItem item) {
+		            	 int i = item.getItemId();
+			             String locX = ((Double) conInfo.get("x")).intValue() + "";
+			             String locY = ((Double) conInfo.get("y")).intValue() + "";
+						 String locZ = ((Double) conInfo.get("z")).intValue() + "";
+						 Log.e("getInfo", locX.toString());
+						 Log.e("getInfo", locY.toString());
+						 Log.e("getInfo", locZ.toString());
+						 Log.e("addConnection","roomID = " + dbID);
+						 Log.e("addConnection","index = " + i );
+						 Log.e("addConnection","size of idRoom = " + idRoom.size() + "");
+						 Log.e("addConnection","idRoom at i = " + idRoom.get(i));
+					     userFunctions.addConnection(locX,locY,locZ,dbID,idRoom.get(i).toString());
+					  
+		              return true;  
+		             }
+				});
+				popup.show();
+				// refresh screen
+				webView.reload();
 			}
 		});
 	}
