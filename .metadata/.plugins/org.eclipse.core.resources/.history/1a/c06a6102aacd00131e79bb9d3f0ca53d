@@ -343,6 +343,14 @@ public class RoomsActivity extends Activity
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data){
+		if(requestCode == CAMERA_PIC_REQUEST){
+			if (resultCode == RESULT_OK) {
+				File caputredImage = new File(mCurrentPhotoPath);
+				//Uri caputredImage = Uri.fromFile(f);
+				new S2PutPictureTask().execute(caputredImage);
+				userFunctions.changeHouseURL(dbID, "https:s3-us-west-2.amazonaws.com/promenadevt-1/property"+dbID);
+			}
+		}
 		if(requestCode == PHOTO_SELECTED){
 			if (resultCode == RESULT_OK) {
 
@@ -377,7 +385,7 @@ public class RoomsActivity extends Activity
 	public void upload(Uri data) throws IOException
     {
 		FTPClient con = null;
-		String fileName = "property" + dbID;
+		String fileName = "room" + dbID;
 		try
         {
 			InputStream in = getContentResolver().openInputStream(data);

@@ -377,7 +377,7 @@ public class RoomsActivity extends Activity
 	public void upload(Uri data) throws IOException
     {
 		FTPClient con = null;
-		String fileName = "property" + dbID;
+		String fileName = "room" + dbID;
 		try
         {
 			InputStream in = getContentResolver().openInputStream(data);

@@ -125,7 +125,7 @@ public class EditActivity extends Activity
 				Log.v("get content: uri",contentURI.toString());
 				userFunctions.changeURL(dbID, "/home/android/files/room" + dbID);
 				EC2UploadTask task = new EC2UploadTask();
-				task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,contentURI);
+				task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 			}
 		}
 	}
@@ -624,6 +624,26 @@ public class EditActivity extends Activity
 			return null;
 		}
 		
+		/*public String getRealPathFromURI(Context context,Uri contentUri) {
+
+	        // can post image
+			Cursor cursor=null;
+			try{
+		        String [] proj={MediaStore.Images.Media.DATA};
+		        cursor = context.getContentResolver().query( contentUri,
+		                        proj, // Which columns to return
+		                        null,       // WHERE clause; which rows to return (all rows)
+		                        null,       // WHERE clause selection arguments (none)
+		                        null); // Order-by clause (ascending by name)
+		        int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+		        cursor.moveToFirst();
+	
+		        return cursor.getString(column_index);
+			}finally{
+			if(cursor != null)
+				cursor.close();
+			}
+		}*/
 		
 }
 
