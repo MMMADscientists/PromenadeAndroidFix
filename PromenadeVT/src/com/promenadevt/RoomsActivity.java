@@ -34,6 +34,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 import android.widget.ViewSwitcher;
 import android.widget.Button;
 import android.widget.EditText;
@@ -81,6 +82,8 @@ public class RoomsActivity extends Activity
 	
 	String mCurrentPhotoPath;
 	
+	Constants constants;
+	
 	private AmazonS3Client s3Client = new AmazonS3Client(
 			new BasicAWSCredentials(Constants.ACCESS_KEY_ID,
 					Constants.SECRET_KEY));
@@ -111,6 +114,7 @@ public class RoomsActivity extends Activity
 		rooms = new ArrayList<Button>();
 		
 		
+		
 		// may need to account for newly registered user here
 		Intent intent = getIntent();
 		// pull info from previous page
@@ -122,6 +126,8 @@ public class RoomsActivity extends Activity
 		userFunctions = new UserFunctions();
 		
 		dbID = intent.getStringExtra("id");
+		
+		constants = new Constants(dbID,"0");
 		
 		btnChangeAddr = (Button) findViewById(R.id.btnUpdateP);
 		btnDeleteYes = (Button) findViewById(R.id.btnDeleteHomeYes);
@@ -349,10 +355,9 @@ public class RoomsActivity extends Activity
 				Uri selectedImage = data.getData();
 				//Bitmap thumbnail = (Bitmap) data.getExtras().get("data");
 				//roomImage.setImageURI(selectedImage);
-				userFunctions.changeURL(dbID, "/home/android/files/property" + dbID);
-				EC2UploadTask task = new EC2UploadTask();
+				S3PutObjectTask task = new S3PutObjectTask();
+				userFunctions.changeHouseURL(dbID, "https:s3-us-west-2.amazonaws.com/promenadevt-1/property"+dbID);
 				task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,selectedImage);
-				
 			}
 		}
 		super.onActivityResult(requestCode, resultCode, data);
@@ -370,6 +375,13 @@ public class RoomsActivity extends Activity
 				e.printStackTrace();
 			}
 			return null;
+		}
+		
+		protected Void onPostExecute(Long result){
+			Toast.makeText(getApplicationContext(), "Upload of photo for " + address + " complete", android.widget.Toast.LENGTH_SHORT);
+			
+			return null;
+			
 		}
 		
 	}
@@ -415,6 +427,65 @@ public class RoomsActivity extends Activity
         }
     }
 
+	private class S3PutObjectTask extends AsyncTask<Uri, Void, Void> {
+		protected Void doInBackground(Uri... uris) {
+
+			if (uris == null || uris.length != 1) {
+				return null;
+			}
+
+			// The file location of the image selected.
+			Uri selectedImage = uris[0];
+
+
+            ContentResolver resolver = getContentResolver();
+            String fileSizeColumn[] = {OpenableColumns.SIZE}; 
+            
+			Cursor cursor = resolver.query(selectedImage,
+                    fileSizeColumn, null, null, null);
+
+            cursor.moveToFirst();
+
+            int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
+            // If the size is unknown, the value stored is null.  But since an int can't be
+            // null in java, the behavior is implementation-specific, which is just a fancy
+            // term for "unpredictable".  So as a rule, check if it's null before assigning
+            // to an int.  This will happen often:  The storage API allows for remote
+            // files, whose size might not be locally known.
+            String size = null;
+            if (!cursor.isNull(sizeIndex)) {
+                // Technically the column stores an int, but cursor.getString will do the
+                // conversion automatically.
+                size = cursor.getString(sizeIndex);
+            } 
+            
+			cursor.close();
+
+			ObjectMetadata metadata = new ObjectMetadata();
+			metadata.setContentType(resolver.getType(selectedImage));
+			if(size != null){
+			    metadata.setContentLength(Long.parseLong(size));
+			}
+
+			// Put the image data into S3.
+			PutObjectRequest por;
+			try {
+				por = new PutObjectRequest(
+						Constants.getPictureBucket(), constants.PROP_ID,
+						resolver.openInputStream(selectedImage),metadata);
+						s3Client.putObject(por);
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			
+			return null;
+		}
+		protected void onPostExecute (Void result){
+			Toast.makeText(getApplicationContext(), "Upload of photo for " + address + " complete", android.widget.Toast.LENGTH_SHORT).show();
+		}
+	}
 }
 
 

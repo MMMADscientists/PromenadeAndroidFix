@@ -37,6 +37,7 @@ import android.provider.OpenableColumns;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.widget.Toast;
 import android.widget.ViewSwitcher;
 import android.widget.Button;
 import android.widget.EditText;
@@ -96,7 +97,7 @@ public class EditActivity extends Activity
 	int CAMERA_PIC_REQUEST = 1337; 
 	private static final int PHOTO_SELECTED = 1;
 	
-	Constants Constants;
+	Constants constants;
 	
 	private AmazonS3Client s3Client = new AmazonS3Client(
 			new BasicAWSCredentials(Constants.ACCESS_KEY_ID,
@@ -123,8 +124,10 @@ public class EditActivity extends Activity
 				Uri contentURI = data.getData();
 				Log.v("get content: data",data.toString());
 				Log.v("get content: uri",contentURI.toString());
-				userFunctions.changeURL(dbID, "/home/android/files/room" + dbID);
-				EC2UploadTask task = new EC2UploadTask();
+				//userFunctions.changeURL(dbID, "/home/android/files/room" + dbID);
+				//EC2UploadTask task = new EC2UploadTask();
+				S3PutObjectTask task = new S3PutObjectTask();
+				userFunctions.changeURL(dbID, "https:s3-us-west-2.amazonaws.com/promenadevt-1/room"+dbID);
 				task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,contentURI);
 			}
 		}
@@ -173,11 +176,12 @@ public class EditActivity extends Activity
 		inputName.setText(roomName);
 		dbID = intent.getStringExtra("id");
 		roomURL = intent.getStringExtra("url");//"https://s3-us-west-2.amazonaws.com/promenadevt-1/room"+dbID;
-		Constants = new Constants(propID,dbID);
+		constants = new Constants(propID,dbID);
 		
 		btnChangeName = (Button) findViewById(R.id.btnUpdateR);
 		btnTakePhoto = (Button) findViewById(R.id.btnPhoto);
 		btnAddConnection = (Button) findViewById(R.id.btnConnection);
+		btnAddConnection.setText("Add Connections (Disabled)");
 		//btnViewRoom = (Button) findViewById(R.id.btnView);
 		btnDelete = (Button) findViewById(R.id.btnDelete);
 		btnDeleteYes = (Button) findViewById(R.id.btnDeleteRoomYes);
@@ -233,27 +237,6 @@ public class EditActivity extends Activity
 			}
 			 
 		 });
-        
-        /*btnViewRoom.setOnClickListener(new View.OnClickListener() 
-		{
-
-			@Override
-			public void onClick(View arg0) {
-				try {
-					bitmap = new EC2GetOpbectTask().execute().get();
-					roomImage.setImageBitmap(getResizedBitmap(bitmap,2048,2048));
-					bitmap.recycle();
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (ExecutionException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				
-			}
-			 
-		 });*/
 		
         
         btnDelete.setOnClickListener(new View.OnClickListener() 
@@ -315,7 +298,7 @@ public class EditActivity extends Activity
 	    }
 	}
 	//AMAZON S3 STUFF HERE *********************************************************************************************************
-	private class EC2UploadTask extends AsyncTask<Uri, Void, Void>{
+	public class EC2UploadTask extends AsyncTask<Uri, Void, Void>{
 
 		@Override
 		protected Void doInBackground(Uri... params) {
@@ -328,21 +311,10 @@ public class EditActivity extends Activity
 			}
 			return null;
 		}
-		
 	}
-	/*
-	private class S3PutObjectTask extends AsyncTask<Uri, Void, S3TaskResult> {
-
-		ProgressDialog dialog;
-
-		protected void onPreExecute() {
-			dialog = new ProgressDialog(EditActivity.this);
-			dialog.setMessage("Uploading");
-			dialog.setCancelable(false);
-			dialog.show();
-		}
-
-		protected S3TaskResult doInBackground(Uri... uris) {
+	
+	private class S3PutObjectTask extends AsyncTask<Uri, Void, Void> {
+		protected Void doInBackground(Uri... uris) {
 
 			if (uris == null || uris.length != 1) {
 				return null;
@@ -380,35 +352,22 @@ public class EditActivity extends Activity
 			if(size != null){
 			    metadata.setContentLength(Long.parseLong(size));
 			}
-
-			S3TaskResult result = new S3TaskResult();
-
 			// Put the image data into S3.
 			PutObjectRequest por;
 			try {
 				por = new PutObjectRequest(
-						Constants.getPictureBucket(), Constants.ROOM_ID,
+						Constants.getPictureBucket(), constants.ROOM_ID,
 						resolver.openInputStream(selectedImage),metadata);
 						s3Client.putObject(por);
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
-
-			return result;
+			return null;
 		}
-
-		protected void onPostExecute(S3TaskResult result) {
-
-			dialog.dismiss();
-
-			if (result.getErrorMessage() != null) {
-
-				displayErrorAlert(
-						"failure",
-						result.getErrorMessage());
-			}
+		
+		protected void onPostExecute (Void result){
+			Toast.makeText(getApplicationContext(), "Upload of photo for " + roomName + " complete", android.widget.Toast.LENGTH_SHORT).show();
 		}
 	}
 
@@ -458,26 +417,6 @@ public class EditActivity extends Activity
 		}
 	}
 
-	private class S3TaskResult {
-		String errorMessage = null;
-		Uri uri = null;
-
-		public String getErrorMessage() {
-			return errorMessage;
-		}
-
-		public void setErrorMessage(String errorMessage) {
-			this.errorMessage = errorMessage;
-		}
-
-		public Uri getUri() {
-			return uri;
-		}
-
-		public void setUri(Uri uri) {
-			this.uri = uri;
-		}
-	}
 	
 	// Display an Alert message for an error or failure.
 		protected void displayAlert(String title, String message) {
@@ -523,9 +462,9 @@ public class EditActivity extends Activity
 			  inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
 			  String path = Images.Media.insertImage(inContext, inImage, "Title", null);
 			  return Uri.parse(path);
-		}*/
+		}
 		
-		private class EC2GetOpbectTask extends
+		public class EC2GetOpbectTask extends
 		AsyncTask<Void, Void, Bitmap> {
 
 			@Override

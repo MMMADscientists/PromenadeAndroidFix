@@ -18,14 +18,14 @@ public class Constants {
 	// * http://aws.amazon.com/articles/Mobile/4617974389850313
 	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-	public static final String ACCESS_KEY_ID = "android";
-	public static final String SECRET_KEY = "android1";
+	public static final String ACCESS_KEY_ID = "";
+	public static final String SECRET_KEY = "";
 
 	public String PROP_ID;// = "picture-bucket";
 	public String ROOM_ID;// = "NameOfThePicture";
 	
 	public Constants(String bucket, String name){
-		PROP_ID = bucket;
+		PROP_ID = "property"+bucket;
 		ROOM_ID = "room"+name;
 	}
 
